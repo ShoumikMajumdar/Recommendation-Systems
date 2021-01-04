@@ -1,9 +1,10 @@
 import numpy as np
 from flask import Flask, request, jsonify, render_template
 import pickle
-from reco import get_reco
+from Engine import Reco
 
 app = Flask(__name__)
+model = Reco()
 
 @app.route('/')
 def home():
@@ -13,7 +14,9 @@ def home():
 @app.route('/predict',methods=[ 'POST','GET'])
 def predict():
     title = request.form['movie']
-    print(title)
+    res = model.get_reco(title)
+    return jsonify(res)
+    
 
 # @app.route('/predict_api', methods=[ 'POST'])
 # def predict_api():
