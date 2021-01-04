@@ -2,7 +2,6 @@ import numpy as np
 from flask import Flask, request, jsonify, render_template
 import pickle
 from ContentPlotEngine import Reco_content
-#from ContentPlotEngine import get_director get_list, get_reco, get_reco_genre_credits,get_reco_plot,get_screenplay,clean_data
 
 app = Flask(__name__)
 model = Reco_content()
@@ -12,12 +11,20 @@ def home():
     return render_template('index.html')
 
 
-@app.route('/predict',methods=[ 'POST','GET'])
-def predict():
-    title = request.form['movie']
-    res = model.get_reco_genre_credits(title)
+@app.route('/plot',methods=[ 'POST','GET'])
+def plot():
+    #title = request.form['movie']
+    title = request.args.get('movie')
+    res = model.get_reco_plot(title)
     return jsonify(res)
-    
+
+
+@app.route('/crew',methods=[ 'POST','GET'])
+def crew():
+    #title = request.form['movie']
+    title = request.args.get('movie')
+    res = model.get_reco_crew(title)
+    return jsonify(res)
 
 # @app.route('/predict_api', methods=[ 'POST'])
 # def predict_api():

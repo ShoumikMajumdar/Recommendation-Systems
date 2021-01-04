@@ -149,7 +149,7 @@ class Reco_content:
     Get recommendations based on genre, cast, director and screenwriter
     """
 
-    def get_reco_genre_credits(self,title):
+    def get_reco_crew(self,title):
         indices = pd.Series(self.merged.index , index = self.merged['title'])
         try:
             ind = indices[title]
