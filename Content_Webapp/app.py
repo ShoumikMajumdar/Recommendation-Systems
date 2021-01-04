@@ -1,7 +1,7 @@
 import numpy as np
 from flask import Flask, request, jsonify, render_template
 import pickle
-from ContentPlotEngine import Reco_plot
+from ContentPlotEngine import Reco_content
 #from ContentPlotEngine import get_director get_list, get_reco, get_reco_genre_credits,get_reco_plot,get_screenplay,clean_data
 
 app = Flask(__name__)
