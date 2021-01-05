@@ -13,6 +13,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 from sklearn.feature_extraction.text import CountVectorizer
 import pickle
+import os.path
+from os import path
 
 
 class Reco_content:
@@ -35,11 +37,19 @@ class Reco_content:
 
         # Plot
 
-        self.tfidf = TfidfVectorizer(stop_words='english')
-        self.tfidf_matrix = self.tfidf.fit_transform(self.df['overview'])
-        self.cosine_sim = linear_kernel(self.tfidf_matrix,self.tfidf_matrix)
+        if path.exists("plot_sim.pickle"):
+            print("TFIDF plot vecotor loaded from disk")
+            with open('plot_sim.pickle', 'rb') as f:
+                self.plot_sim = pickle.load(f)
+        else:
+            print("Creating TFIDF plot vector")
+            self.tfidf = TfidfVectorizer(stop_words='english')
+            self.tfidf_matrix = self.tfidf.fit_transform(self.df['overview'])
+            self.plot_sim= linear_kernel(self.tfidf_matrix,self.tfidf_matrix)
+            with open('plot_sim.pickle', 'wb') as f:
+                pickle.dump(self.plot_sim, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-        # Genre
+        # # Genre
 
         self.merged = self.data.merge(self.keywords,on='id')
         self.merged = self.merged.merge(self.credits,on='id')
@@ -64,10 +74,19 @@ class Reco_content:
 
         self.merged = self.merged.iloc[:20000,:]
 
-        self.count = CountVectorizer(stop_words='english')
-        self.count_matrix = self.count.fit_transform(self.merged['metadata'])
-        self.cosine_sim = linear_kernel(self.count_matrix,self.count_matrix)
-                       
+        if path.exists("crew_sim.pickle"):
+            print("TFIDF Crew vector loaded from disk")
+            with open('crew_sim.pickle', 'rb') as f:
+                self.crew_sim = pickle.load(f)
+        else:
+            print("Creating TFIDF crew vector")
+            self.count = CountVectorizer(stop_words='english')
+            self.count_matrix = self.count.fit_transform(self.merged['metadata'])
+            self.crew_sim = linear_kernel(self.count_matrix,self.count_matrix)
+            with open('crew_sim.pickle', 'wb') as f:
+                pickle.dump(self.crew_sim, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+               
     def cold_start(self, title,percentile=0.95):
         vote_avg = self.df[self.df['vote_average'].notnull()]['vote_average'].astype('int')
         C = vote_avg.mean()
@@ -105,7 +124,6 @@ class Reco_content:
 
     #get screenplay list
     def get_screenplay(self,x):
-        names = []
         for i in x:
             if i['job'] == 'Screenplay':
                 return i['name']
@@ -137,7 +155,7 @@ class Reco_content:
         except KeyError:
             res = self.cold_start(title)
             return res
-        sim_score = list(enumerate(self.cosine_sim[idx]))
+        sim_score = list(enumerate(self.plot_sim[idx]))
         sim_score = sorted(sim_score,key = lambda x : x[1], reverse = True)
         sim_score = sim_score[1:11]
         movie_indices = [i[0] for i in sim_score]
@@ -156,7 +174,7 @@ class Reco_content:
         except KeyError:
             res = self.cold_start(title)
             return res
-        sim_scores = list(enumerate(self.cosine_sim[ind]))
+        sim_scores = list(enumerate(self.crew_sim[ind]))
         sim_scores = sorted(sim_scores, key = lambda x: x[1], reverse=True)
         sim_scores = sim_scores[1:11]
         movie_indices = [i[0] for i in  sim_scores]
