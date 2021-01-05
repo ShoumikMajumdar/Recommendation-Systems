@@ -19,21 +19,20 @@ from os import path
 
 class Reco_content:
     def __init__(self):
-        self.data = pd.read_csv("movies_metadata.csv")
-        self.data = self.data.drop([19730,29503,35587])
-        self.data['genres'] = self.data['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
-        
-        
-        self.credits = pd.read_csv("credits.csv")
-        self.keywords = pd.read_csv("keywords.csv")
 
-        self.keywords['id'] = self.keywords['id'].astype('int')
-        self.credits['id'] = self.credits['id'].astype('int')
-        self.data['id'] = self.data['id'].astype('int')
+        if path.exists("df.pickle"):
+            with open('df.pickle', 'rb') as f:
+                self.df = pickle.load(f)
 
-        self.df = self.data[['adult','genres','title','overview','vote_average','vote_count']]
-        self.df = self.df.iloc[:20000,:]
-        self.df['overview'] = self.df['overview'].fillna('')
+        else:
+            self.data = pd.read_csv("movies_metadata.csv")
+            self.data = self.data.drop([19730,29503,35587])
+            self.data['genres'] = self.data['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
+            self.df = self.data[['adult','genres','title','overview','vote_average','vote_count']]
+            self.df = self.df.iloc[:20000,:]
+            self.df['overview'] = self.df['overview'].fillna('')
+            with open('df.pickle', 'wb') as f:
+                pickle.dump(self.df, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         # Plot
 
@@ -50,29 +49,42 @@ class Reco_content:
                 pickle.dump(self.plot_sim, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         # # Genre
+        if path.exists("merged.pickle"):
+            with open('merged.pickle', 'rb') as f:
+                self.merged = pickle.load(f)
 
-        self.merged = self.data.merge(self.keywords,on='id')
-        self.merged = self.merged.merge(self.credits,on='id')
+        else:
+            self.credits = pd.read_csv("credits.csv")
+            self.keywords = pd.read_csv("keywords.csv")
+
+            self.keywords['id'] = self.keywords['id'].astype('int')
+            self.credits['id'] = self.credits['id'].astype('int')
+            self.data['id'] = self.data['id'].astype('int')
+            self.merged = self.data.merge(self.keywords,on='id')
+            self.merged = self.merged.merge(self.credits,on='id')
             
-        features = ['cast', 'crew', 'keywords']
-        for feature in features:
-            self.merged[feature] = self.merged[feature].apply(literal_eval)
-    
-        features = ['cast', 'keywords']
-        for feature in features:
-            self.merged[feature] = self.merged[feature].apply(self.get_list)
+            features = ['cast', 'crew', 'keywords']
+            for feature in features:
+                self.merged[feature] = self.merged[feature].apply(literal_eval)
+        
+            features = ['cast', 'keywords']
+            for feature in features:
+                self.merged[feature] = self.merged[feature].apply(self.get_list)
 
-        self.merged['director'] = self.merged['crew'].apply(self.get_director)
-        self.merged['Screenplay'] = self.merged['crew'].apply(self.get_screenplay)
-        self.merged = self.merged[['genres','title','keywords','cast','director','Screenplay']]
+            self.merged['director'] = self.merged['crew'].apply(self.get_director)
+            self.merged['Screenplay'] = self.merged['crew'].apply(self.get_screenplay)
+            self.merged = self.merged[['genres','title','keywords','cast','director','Screenplay']]
 
-        features = ['genres','keywords','cast','director','Screenplay']
-        for feature in features:
-            self.merged[feature] = self.merged[feature].apply(self.clean_data)
+            features = ['genres','keywords','cast','director','Screenplay']
+            for feature in features:
+                self.merged[feature] = self.merged[feature].apply(self.clean_data)
 
-        self.merged['metadata'] = self.merged.apply(self.soup,axis = 1)
+            self.merged['metadata'] = self.merged.apply(self.soup,axis = 1)
 
-        self.merged = self.merged.iloc[:20000,:]
+            self.merged = self.merged.iloc[:20000,:]
+            with open('merged.pickle', 'wb') as f:
+                pickle.dump(self.merged, f, protocol=pickle.HIGHEST_PROTOCOL)   
+
 
         if path.exists("crew_sim.pickle"):
             print("TFIDF Crew vector loaded from disk")
