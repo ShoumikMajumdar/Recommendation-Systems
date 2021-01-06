@@ -2,8 +2,9 @@
 
 Extract the Credits.csv, Keywords.csv and movies_metedata.csv in Content_Webapp folder.
 
-To run: 
-export FLASK_APP=app
+To run: <br>
+cd to the Content_Webapp folder<br>
+export FLASK_APP=app<br>
 flask run
 
 
