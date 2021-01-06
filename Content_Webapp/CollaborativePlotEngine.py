@@ -2,16 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pickle
 from os import path
 
 from collections import Counter
 from sklearn.metrics.pairwise import cosine_similarity
-
-
-from surprise import SVD,Reader,Dataset
-from surprise.model_selection import GridSearchCV, cross_validate
 
 
 class Reco_colab:
