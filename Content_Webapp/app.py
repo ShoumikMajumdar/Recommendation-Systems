@@ -2,9 +2,11 @@ import numpy as np
 from flask import Flask, request, jsonify, render_template
 import pickle
 from ContentPlotEngine import Reco_content
+from CollaborativePlotEngine import Reco_colab
 
 app = Flask(__name__)
-model = Reco_content()
+content = Reco_content()
+colab = Reco_colab()
 
 @app.route('/')
 def home():
@@ -15,7 +17,7 @@ def home():
 def plot():
     #title = request.form['movie']
     title = request.args.get('movie')
-    res = model.get_reco_plot(title)
+    res = content.get_reco_plot(title)
     return jsonify(res)
 
 
@@ -23,7 +25,15 @@ def plot():
 def crew():
     #title = request.form['movie']
     title = request.args.get('movie')
-    res = model.get_reco_crew(title)
+    res = content.get_reco_crew(title)
+    return jsonify(res)
+
+@app.route('/item',methods=[ 'POST','GET'])
+def item():
+    #title = request.form['movie']
+    title = request.args.get('movie')
+    title+=' '
+    res = colab.get_recommended(title)
     return jsonify(res)
 
 # @app.route('/predict_api', methods=[ 'POST'])
