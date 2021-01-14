@@ -42,11 +42,14 @@ class Reco_colab:
 
 
     def get_recommended(self,item, min_ratings = 100):
+        print(f"ITEM RECEIVED : {item}")
         movie_corr = self.item_corr_matrix[item]
         movie_corr = movie_corr.sort_values(ascending=False)
         movies_similar_to_item = pd.DataFrame(data=movie_corr.values, columns=['Correlation'], index = movie_corr.index)
         movies_similar_to_item = movies_similar_to_item.join(self.n_ratings['total ratings'])
         movies_similar_to_item = movies_similar_to_item[1:]
         res =  movies_similar_to_item[movies_similar_to_item['total ratings'] > min_ratings ].sort_values(ascending=False,by=['Correlation']).head(10)
-        res = res.reset_index().values.tolist()['title']
+        res = res.reset_index()['title'].values.tolist()
+        print(res)
+        #res = res.reset_index().values.tolist()['title']
         return res                                                                           
